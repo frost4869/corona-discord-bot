@@ -23,7 +23,7 @@ client.on("message", (msg) => {
 });
 
 function isMentioned(message) {
-  return message.includes('.c ');
+  return message.includes(".c ");
 }
 
 async function fetchCovid(msg) {
@@ -34,64 +34,69 @@ async function fetchCovid(msg) {
   if (resp.message) {
     channel.send(resp.message);
   } else {
-    const {
-      country,
-      countryInfo,
-      cases,
-      todayCases,
-      deaths,
-      todayDeaths,
-      recovered,
-      active,
-      updated,
-    } = resp;
-    const { flag } = countryInfo;
-    const embed = new Discord.MessageEmbed()
-      .setTitle(country)
-      .setThumbnail(flag)
-      .setDescription(`Last updated ${new Date(updated).toUTCString()}`)
-      .addFields(
-        {
-          name: `Confirmed ${ambulanceIcon}`,
-          value: `${formatNumber(cases)} ${
-            todayCases > 0 ? `(+${todayCases})` : ""
-          }`,
-          inline: true,
-        },
-        {
-          name: `Death ${deathIcon}`,
-          value: `${formatNumber(deaths)} ${
-            todayDeaths > 0 ? `(+${todayDeaths})` : ""
-          }`,
-          inline: true,
-        }
-      )
-      .addFields(
-        {
-          name: `Recovered ${recoverIcon}`,
-          value: `${formatNumber(recovered)}`,
-          inline: true,
-        },
-        {
-          name: `Actives ${activeIcon}`,
-          value: `${formatNumber(active)}`,
-          inline: true,
-        }
-      )
-      .addFields(
-        {
-          name: `Mortality Rate ${mortalityIcon}`,
-          value: `${((deaths * 100) / cases).toFixed(2)} %`,
-          inline: true,
-        },
-        {
-          name: `Recovery Rate ${recoverRateIcon}`,
-          value: `${((recovered * 100) / cases).toFixed(2)}%`,
-          inline: true,
-        }
-      );
+    try {
+      const {
+        country,
+        countryInfo,
+        cases,
+        todayCases,
+        deaths,
+        todayDeaths,
+        recovered,
+        active,
+        updated,
+      } = resp;
+      const { flag } = countryInfo;
+      const embed = new Discord.MessageEmbed()
+        .setTitle(country)
+        .setThumbnail(flag)
+        .setDescription(`Last updated ${new Date(updated).toUTCString()}`)
+        .addFields(
+          {
+            name: `Confirmed ${ambulanceIcon}`,
+            value: `${formatNumber(cases)} ${
+              todayCases > 0 ? `(+${todayCases})` : ""
+            }`,
+            inline: true,
+          },
+          {
+            name: `Death ${deathIcon}`,
+            value: `${formatNumber(deaths)} ${
+              todayDeaths > 0 ? `(+${todayDeaths})` : ""
+            }`,
+            inline: true,
+          }
+        )
+        .addFields(
+          {
+            name: `Recovered ${recoverIcon}`,
+            value: `${formatNumber(recovered)}`,
+            inline: true,
+          },
+          {
+            name: `Actives ${activeIcon}`,
+            value: `${formatNumber(active)}`,
+            inline: true,
+          }
+        )
+        .addFields(
+          {
+            name: `Mortality Rate ${mortalityIcon}`,
+            value: `${((deaths * 100) / cases).toFixed(2)} %`,
+            inline: true,
+          },
+          {
+            name: `Recovery Rate ${recoverRateIcon}`,
+            value: `${((recovered * 100) / cases).toFixed(2)}%`,
+            inline: true,
+          }
+        );
 
-    channel.send(embed);
+      channel.send(embed);
+    } catch (error) {
+      channel.send("Bot dính covid mẹ gòi.");
+      console.log(error);
+    }
   }
 }
 
