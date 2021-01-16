@@ -21,6 +21,8 @@
     "discord.io": "^2.5.3",
     "discord.js": "^12.2.0",
     "dotenv": "^7.0.0",
+    "nightmare": "^3.0.2",
+    "nightmare-screenshot-selector": "^1.0.2",
     "node-fetch": "^2.6.0"
   }
 }

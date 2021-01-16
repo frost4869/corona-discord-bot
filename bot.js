@@ -1,8 +1,17 @@
 require("dotenv").config();
 const fetch = require("node-fetch");
 const Discord = require("discord.js");
-const client = new Discord.Client();
+const Nightmare = require('nightmare')
+const screenshotSelector = require('nightmare-screenshot-selector');
+Nightmare.action('screenshotSelector', screenshotSelector)
+Nightmare.action('scrollIntoView', function (selector, done) {
+  this.evaluate_now((selector) => {
+    // https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+    document.querySelector(selector).scrollIntoView(true)
+  }, done, selector)
+})
 
+const client = new Discord.Client();
 client.once("ready", () => {
   console.log("BOT READY !");
 });
@@ -19,11 +28,23 @@ console.log("[DEBUG] Bot is starting...");
 client.on("message", (msg) => {
   if (msg.content != null) {
     if (isMentioned(msg.content)) fetchCovid(msg);
+    if (isDaily(msg.content)) fetchDailyCovid(msg);
   }
 });
 
 function isMentioned(message) {
   return message.includes(".c ");
+}
+
+function isDaily(message) {
+  return message.includes(".d ");
+}
+
+
+async function fetchDailyCovid(msg) {
+  const { content, channel } = msg;
+  const keyword = content.trim().split(".d ")[1];
+  fetchDailyCountryCases(keyword, channel);
 }
 
 async function fetchCovid(msg) {
@@ -54,16 +75,14 @@ async function fetchCovid(msg) {
         .addFields(
           {
             name: `Confirmed ${ambulanceIcon}`,
-            value: `${formatNumber(cases)} ${
-              todayCases > 0 ? `(+${todayCases})` : ""
-            }`,
+            value: `${formatNumber(cases)} ${todayCases > 0 ? `(+${todayCases})` : ""
+              }`,
             inline: true,
           },
           {
             name: `Death ${deathIcon}`,
-            value: `${formatNumber(deaths)} ${
-              todayDeaths > 0 ? `(+${todayDeaths})` : ""
-            }`,
+            value: `${formatNumber(deaths)} ${todayDeaths > 0 ? `(+${todayDeaths})` : ""
+              }`,
             inline: true,
           }
         )
@@ -106,6 +125,40 @@ async function fetchCountryCases(country) {
     const response = await fetch(url);
     const data = await response.json();
     return data;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function fetchDailyCountryCases(country, channel) {
+  const url = `https://www.google.com/search?q=covid+${country}&hl=en`;
+  try {
+    const nightmare = Nightmare({
+      show: true,
+      // waitTimeout: 1000,
+      pollInterval: 50 //in ms
+    })
+    await nightmare
+      .viewport(1440, 900)
+      .goto(url)
+      .wait('div.a6JJ0e')
+      .scrollIntoView('div.PDn9ad')
+      .wait(2000)
+      .screenshotSelector({ selector: 'div.ZCpU8d' })
+
+      // .screenshot('/Users/buufung/Desktop/Playground/corona-discord-bot/time.png')
+      .end()
+      .then(image => {
+        const attachment = new Discord.MessageAttachment(image, 'chart.png');
+        console.log(image)
+        const embed = new Discord.MessageEmbed()
+          .attachFiles(attachment)
+          .setImage('attachment://chart.png');
+        channel.send({ embed });
+      })
+      .catch(error => {
+        console.error('Search failed:', error)
+      })
   } catch (error) {
     console.log(error);
   }
