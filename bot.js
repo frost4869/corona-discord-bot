@@ -44,6 +44,7 @@ function isDaily(message) {
 async function fetchDailyCovid(msg) {
   const { content, channel } = msg;
   const keyword = content.trim().split(".d ")[1];
+  console.log(keyword);
   fetchDailyCountryCases(keyword, channel);
 }
 
