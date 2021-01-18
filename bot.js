@@ -1,15 +1,8 @@
 require("dotenv").config();
 const fetch = require("node-fetch");
 const Discord = require("discord.js");
-const Nightmare = require('nightmare')
-const screenshotSelector = require('nightmare-screenshot-selector');
-Nightmare.action('screenshotSelector', screenshotSelector)
-Nightmare.action('scrollIntoView', function (selector, done) {
-  this.evaluate_now((selector) => {
-    // https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
-    document.querySelector(selector).scrollIntoView(true)
-  }, done, selector)
-})
+const puppeteer = require('puppeteer');
+
 
 const client = new Discord.Client();
 client.once("ready", () => {
@@ -133,32 +126,22 @@ async function fetchCountryCases(country) {
 async function fetchDailyCountryCases(country, channel) {
   const url = `https://www.google.com/search?q=covid+${country}&hl=en`;
   try {
-    const nightmare = Nightmare({
-      // show: true,
-      // waitTimeout: 1000,
-      pollInterval: 50 //in ms
-    })
-    await nightmare
-      .viewport(1440, 900)
-      .goto(url)
-      .wait('div.a6JJ0e')
-      .scrollIntoView('div.PDn9ad')
-      .wait(2000)
-      .screenshotSelector({ selector: 'div.ZCpU8d' })
-
-      // .screenshot('/Users/buufung/Desktop/Playground/corona-discord-bot/time.png')
-      .end()
-      .then(image => {
-        const attachment = new Discord.MessageAttachment(image, 'chart.png');
-        console.log(image)
-        const embed = new Discord.MessageEmbed()
-          .attachFiles(attachment)
-          .setImage('attachment://chart.png');
-        channel.send({ embed });
-      })
-      .catch(error => {
-        console.error('Search failed:', error)
-      })
+    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });       // run browser
+    const page = await browser.newPage();
+    await page.setViewport({
+      width: 1440,
+      height: 900
+    });         // open new tab
+    await page.goto(url);          // go to site
+    await page.waitForSelector('div.a6JJ0e');          // wait for the selector to load
+    const element = await page.$('div.ZCpU8d');        // declare a variable with an ElementHandle
+    const image = await element.screenshot(); // take screenshot element in puppeteer
+    await browser.close();
+    const attachment = new Discord.MessageAttachment(image, 'chart.png');
+    const embed = new Discord.MessageEmbed()
+      .attachFiles(attachment)
+      .setImage('attachment://chart.png');
+    channel.send({ embed });
   } catch (error) {
     console.log(error);
   }
