@@ -134,7 +134,7 @@ async function fetchDailyCountryCases(country, channel) {
   const url = `https://www.google.com/search?q=covid+${country}&hl=en`;
   try {
     const nightmare = Nightmare({
-      show: true,
+      // show: true,
       // waitTimeout: 1000,
       pollInterval: 50 //in ms
     })

@@ -15,6 +15,9 @@
     "covid",
     "corona"
   ],
+  "engines": {
+    "node": "12.x"
+  },
   "author": "Son Nguyen",
   "license": "ISC",
   "dependencies": {
